@@ -1,5 +1,7 @@
 package telegram;
 
+import database.DatabaseHandler;
+import javafx.scene.chart.PieChart;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.objects.Update;
@@ -17,7 +19,7 @@ import java.util.Map;
 public class TelegramBot extends TelegramLongPollingBot {
     private String botName;
     private String botKey;
-    private HashMap<String, Long> subscribers = new HashMap<String, Long>();
+    private TelegramSubscribers subscribers = new TelegramSubscribers();
 
     public TelegramBot(String name, String key){
         botName = name;
@@ -34,18 +36,22 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    public void restoreSubscribers(DatabaseHandler db){
+
+    }
+
     /**
      * incoming message receiver
      * @param update - message object
      */
     public void onUpdateReceived(Update update) {
-        if(!subscribers.containsKey(update.getMessage().getFrom().getUserName())){
-            subscribers.put(update.getMessage().getFrom().getUserName(), update.getMessage().getChatId());
+        if(!subscribers.getSubscribers().containsKey(update.getMessage().getFrom().getUserName())){
+            subscribers.addSubscriber(update.getMessage().getFrom().getUserName(), update.getMessage().getChatId());
         }
     }
 
     public boolean hasSubscribers(){
-        return subscribers.size() > 0;
+        return subscribers.getSubscribers().size() > 0;
     }
 
     public String getBotUsername() {
@@ -59,7 +65,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void sendBrodcastMessage(String message){
         Integer messageCount = 0;
 
-        for(Map.Entry<String, Long> subscribberEntry : subscribers.entrySet()){
+        for(Map.Entry<String, Long> subscribberEntry : subscribers.getSubscribers().entrySet()){
             SendMessage sm = new SendMessage();
             sm.setChatId(subscribberEntry.getValue());
             sm.setText(message);

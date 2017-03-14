@@ -50,6 +50,7 @@ public class Yamb {
             System.err.println("SQLException : " + e.getMessage());
         }
 
+        bot.restoreSubscribers(db);
 
         // create system observer
         observer = new YambMonitorObserver(bot);

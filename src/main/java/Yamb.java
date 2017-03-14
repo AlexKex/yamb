@@ -1,5 +1,9 @@
+import database.DatabaseHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import telegram.TelegramBot;
+
+import java.awt.datatransfer.StringSelection;
+import java.sql.SQLException;
 
 /**
  * Created by Alex Pryakhin on 09.03.2017.
@@ -12,6 +16,7 @@ import telegram.TelegramBot;
  */
 public class Yamb {
     private TelegramBot bot;
+    private DatabaseHandler db;
     private YambMonitorObserver observer;
     private YambConfig config;
     private boolean isRunning = false;
@@ -32,6 +37,19 @@ public class Yamb {
         );
 
         bot.startBot();
+
+        try {
+            db = new DatabaseHandler(
+                    config.getMainStringParameter("sqlite", "db_name")
+            );
+        }
+        catch (ClassNotFoundException e){
+            System.err.println("Class for JDBC was not found");
+        }
+        catch (SQLException e){
+            System.err.println("SQLException : " + e.getMessage());
+        }
+
 
         // create system observer
         observer = new YambMonitorObserver(bot);

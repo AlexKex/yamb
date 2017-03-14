@@ -82,7 +82,7 @@ public class YambConfig {
         JSONTokener jsonTokener = new JSONTokener(configurationFileReader);
         JSONObject configJsonObject = new JSONObject(jsonTokener);
 
-        if(configurationFile.getName().equals("yamb.conf")){
+        if(configurationFile.getName().equals(mainConfigName)){
             // main configuration
             Iterator<String> configIterator = configJsonObject.keys();
             while(configIterator.hasNext()){

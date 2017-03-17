@@ -16,7 +16,7 @@ import java.sql.SQLException;
  */
 public class Yamb {
     private TelegramBot bot;
-    private DatabaseHandler db;
+    private static DatabaseHandler db;
     private YambMonitorObserver observer;
     private YambConfig config;
     private boolean isRunning = false;
@@ -50,7 +50,7 @@ public class Yamb {
             System.err.println("SQLException : " + e.getMessage());
         }
 
-        bot.restoreSubscribers(db);
+        bot.getSubscribers();
 
         // create system observer
         observer = new YambMonitorObserver(bot);

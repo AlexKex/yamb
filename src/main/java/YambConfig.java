@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -40,9 +41,9 @@ public class YambConfig {
     /**
      * String getter for main app config parameters
      * @param parameterName - get parameter by name and block
-     * @return
+     * @return boolean | empty string
      */
-    public String getMainStringParameter(String parameterBlock, String parameterName){
+    public String getStringParameter(String parameterBlock, String parameterName){
         String parameterValue = "";
 
         try{
@@ -52,6 +53,9 @@ public class YambConfig {
         }
         catch(Exception e){
             System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
+            System.err.println(e.getMessage());
+
+            return null;
         }
 
         return parameterValue;
@@ -60,9 +64,9 @@ public class YambConfig {
     /**
      * Integer getter for config parameters
      * @param parameterName- get parameter by name and block
-     * @return
+     * @return Integer
      */
-    public Integer getMainIntegerParameter(String parameterName, String parameterBlock){
+    public Integer getIntegerParameter(String parameterBlock, String parameterName){
         Integer parameterValue = null;
 
         try{
@@ -70,8 +74,35 @@ public class YambConfig {
 
             parameterValue = parameters.getInt(parameterName);
         }
-        catch(Exception e){
+        catch(JSONException e){
             System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
+            System.err.println(e.getMessage());
+
+            return 0;
+        }
+
+        return parameterValue;
+    }
+
+    /**
+     *
+     * @param parameterBlock - name of parameters block in configuration file
+     * @param parameterName - name of the parameter
+     * @return boolean, false by default
+     */
+    public boolean getBooleanParameter(String parameterBlock, String parameterName){
+        boolean parameterValue = false;
+
+        try{
+            JSONObject parameters = configuration.get(parameterBlock);
+
+            parameterValue = parameters.getBoolean(parameterName);
+        }
+        catch(JSONException e){
+            System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
+            System.err.println(e.getMessage());
+
+            return false;
         }
 
         return parameterValue;

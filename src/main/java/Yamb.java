@@ -1,8 +1,6 @@
 import database.DatabaseHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import telegram.TelegramBot;
-
-import java.awt.datatransfer.StringSelection;
 import java.sql.SQLException;
 
 /**
@@ -25,6 +23,7 @@ public class Yamb {
         // read main configuration file
         config = new YambConfig(configurationDirectory);
 
+
         // read the list of monitors
         this.createMonitors();
 
@@ -32,15 +31,17 @@ public class Yamb {
         // Initializing Telegram bot environment
         ApiContextInitializer.init();
         bot = new TelegramBot(
-                config.getMainStringParameter("telegram", "bot_name"),
-                config.getMainStringParameter("telegram", "bot_token")
+                config.getStringParameter("telegram", "bot_name"),
+                config.getStringParameter("telegram", "bot_token")
         );
 
+        bot.setBotCustomChannelName(config.getStringParameter("main", "custom_channel_name"));
+        bot.setChannelAccessibility(config.getBooleanParameter("main", "is_open_channel"));
         bot.startBot();
 
         try {
             db = new DatabaseHandler(
-                    config.getMainStringParameter("sqlite", "db_name")
+                    config.getStringParameter("sqlite", "db_name")
             );
         }
         catch (ClassNotFoundException e){
@@ -98,10 +99,18 @@ public class Yamb {
         this.isRunning = false;
     }
 
+    /**
+     * checks if the app is running
+     * @return boolean
+     */
     public boolean isAppRunning(){
         return isRunning;
     }
 
+    /**
+     * TelegramBot getter
+     * @return TelegramBot
+     */
     public TelegramBot getBot(){
         return bot;
     }

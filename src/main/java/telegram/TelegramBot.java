@@ -7,9 +7,6 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
 
-import javax.print.attribute.standard.DateTimeAtCompleted;
-import java.awt.image.DataBuffer;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -24,6 +21,8 @@ public class TelegramBot extends TelegramLongPollingBot {
     private String botName;
     private String botKey;
     private HashMap<String, Long> subscribers = new HashMap<String, Long>();
+    private static boolean isOpenChannel;
+    private static String customChannelName;
 
     public TelegramBot(String name, String key){
         botName = name;
@@ -44,7 +43,7 @@ public class TelegramBot extends TelegramLongPollingBot {
      * return or restore subscribers list
      */
     public HashMap<String, Long>  getSubscribers(){
-        if(subscribers.size() == 0){
+        if(!hasSubscribers()){
             restoreSubscribers();
         }
 
@@ -77,7 +76,23 @@ public class TelegramBot extends TelegramLongPollingBot {
      */
     public void onUpdateReceived(Update update) {
         if(!subscribers.containsKey(update.getMessage().getFrom().getUserName())){
-            addSubscriber(update.getMessage().getFrom().getUserName(), update.getMessage().getChatId());
+            if(isOpenChannel) {
+                addSubscriber(update.getMessage().getFrom().getUserName(), update.getMessage().getChatId());
+                String welcomeMessage = "Hello, " + update.getMessage().getFrom().getUserName() + "!);";
+                welcomeMessage += "Welcome to " + customChannelName;
+
+                sendSingleMessage(welcomeMessage, update);
+            }
+            else{
+                String senderNotification = "It's private channel. Your ID will be send to channel's moderator";
+                sendSingleMessage(senderNotification, update);
+
+                //TODO create Admin settings
+                //TODO send admin notofications
+            }
+        }
+        else{
+            //TODO create commands receivers
         }
     }
 
@@ -126,13 +141,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void sendBrodcastMessage(String message){
         Integer messageCount = 0;
 
+        SendMessage broadcastMessage = new SendMessage();
+
         for(Map.Entry<String, Long> subscribberEntry : subscribers.entrySet()){
-            SendMessage sm = new SendMessage();
-            sm.setChatId(subscribberEntry.getValue());
-            sm.setText(message);
+            broadcastMessage.setChatId(subscribberEntry.getValue());
+            broadcastMessage.setText(message);
 
             try{
-                sendMessage(sm);
+                sendMessage(broadcastMessage);
                 messageCount++;
 
                 // sleep every 25 messages due to Telegram requirements
@@ -141,12 +157,48 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
             catch (TelegramApiException e){
-                System.err.println("Telegram API error while sending message");
+                System.err.println("Telegram API error while sending broadcast message");
                 System.err.println(e.getMessage());
             } catch (InterruptedException e) {
                 System.err.println("Thread error while sending message");
                 System.err.println(e.getMessage());
             }
         }
+    }
+
+    /**
+     * Sends personal message to user
+     * @param message - String, message text
+     * @param update - Telegram incoming message object
+     */
+    public void sendSingleMessage(String message, Update update){
+        SendMessage singleMessage = new SendMessage();
+        singleMessage.setChatId(update.getMessage().getChatId());
+        singleMessage.setText(message);
+        try {
+            sendMessage(singleMessage);
+        } catch (TelegramApiException e) {
+            System.err.println("Telegram API error while sending single message");
+            System.err.println(e.getMessage());
+        }
+    }
+
+    /**
+     * setter for user configurated channel name
+     * @param configCustomChannelName custom channel name, coulb empty string
+     */
+    public void setBotCustomChannelName(String configCustomChannelName){
+        if(configCustomChannelName.equals(""))
+            customChannelName = getBotUsername();
+        else
+            customChannelName = configCustomChannelName;
+    }
+
+    /**
+     * setter for channel accessibility
+     * @param configChannelAccessibility - boolean open flag
+     */
+    public void setChannelAccessibility(boolean configChannelAccessibility){
+        isOpenChannel = configChannelAccessibility;
     }
 }

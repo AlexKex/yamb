@@ -1,3 +1,5 @@
+package yamb;
+
 import monitor.Monitor;
 import monitor.MonitorObserver;
 import telegram.TelegramBot;

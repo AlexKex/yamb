@@ -1,7 +1,4 @@
-import database.DatabaseHandler;
-import org.telegram.telegrambots.ApiContextInitializer;
-import telegram.TelegramBot;
-import java.sql.SQLException;
+import yamb.YambApp;
 
 /**
  * Created by Alex Pryakhin on 09.03.2017.
@@ -13,50 +10,6 @@ import java.sql.SQLException;
  * All configuration file syntax described in concrete monitor files classes.
  */
 public class Yamb {
-    private TelegramBot bot;
-    private static DatabaseHandler db;
-    private YambMonitorObserver observer;
-    private YambConfig config;
-    private boolean isRunning = false;
-
-    public Yamb(String configurationDirectory){
-        // read main configuration file
-        config = new YambConfig(configurationDirectory);
-
-
-        // read the list of monitors
-        this.createMonitors();
-
-        // create bot
-        // Initializing Telegram bot environment
-        ApiContextInitializer.init();
-        bot = new TelegramBot(
-                config.getStringParameter("telegram", "bot_name"),
-                config.getStringParameter("telegram", "bot_token")
-        );
-
-        bot.setBotCustomChannelName(config.getStringParameter("main", "custom_channel_name"));
-        bot.setChannelAccessibility(config.getBooleanParameter("main", "is_open_channel"));
-        bot.startBot();
-
-        try {
-            db = new DatabaseHandler(
-                    config.getStringParameter("sqlite", "db_name")
-            );
-        }
-        catch (ClassNotFoundException e){
-            System.err.println("Class for JDBC was not found");
-        }
-        catch (SQLException e){
-            System.err.println("SQLException : " + e.getMessage());
-        }
-
-        bot.getSubscribers();
-
-        // create system observer
-        observer = new YambMonitorObserver(bot);
-    }
-
     /**
      * @param args - launch parameters
      * -c - path to configuration directory
@@ -82,39 +35,12 @@ public class Yamb {
             }
         }
 
-        Yamb app = new Yamb(configurationDirectory);
+        YambApp app = new YambApp(configurationDirectory);
         app.startApp();
         while(app.isAppRunning()){
             if(app.getBot().hasSubscribers()){
                 app.getBot().sendBrodcastMessage("Hello");
             }
         }
-    }
-
-    public void startApp(){
-        this.isRunning = true;
-    }
-
-    public void stopApp(){
-        this.isRunning = false;
-    }
-
-    /**
-     * checks if the app is running
-     * @return boolean
-     */
-    public boolean isAppRunning(){
-        return isRunning;
-    }
-
-    /**
-     * TelegramBot getter
-     * @return TelegramBot
-     */
-    public TelegramBot getBot(){
-        return bot;
-    }
-
-    private void createMonitors() {
     }
 }

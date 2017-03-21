@@ -1,3 +1,5 @@
+package yamb;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -109,24 +111,29 @@ public class YambConfig {
     }
 
     private void readCofig(File configurationFile) throws IOException{
-        FileReader configurationFileReader = new FileReader(configurationFile.getAbsolutePath());
-        JSONTokener jsonTokener = new JSONTokener(configurationFileReader);
-        JSONObject configJsonObject = new JSONObject(jsonTokener);
+        try{
+            FileReader configurationFileReader = new FileReader(configurationFile.getAbsolutePath());
+            JSONTokener jsonTokener = new JSONTokener(configurationFileReader);
+            JSONObject configJsonObject = new JSONObject(jsonTokener);
 
-        if(configurationFile.getName().equals(mainConfigName)){
-            // main configuration
-            Iterator<String> configIterator = configJsonObject.keys();
-            while(configIterator.hasNext()){
-                String current_key = configIterator.next();
-                configuration.put(current_key, configJsonObject.getJSONObject(current_key));
+            if(configurationFile.getName().equals(mainConfigName)){
+                // main configuration
+                Iterator<String> configIterator = configJsonObject.keys();
+                while(configIterator.hasNext()){
+                    String current_key = configIterator.next();
+                    configuration.put(current_key, configJsonObject.getJSONObject(current_key));
+                }
+            }
+            else{
+                // monitor configuration
+                monitorsConfiguration.put(
+                        configJsonObject.getString("monitor_name"),
+                        configJsonObject
+                );
             }
         }
-        else{
-            // monitor configuration
-            monitorsConfiguration.put(
-                    configJsonObject.getString("monitor_name"),
-                    configJsonObject
-            );
+        catch (JSONException e){
+            System.err.println(e.getMessage());
         }
     }
 }

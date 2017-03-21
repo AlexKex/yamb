@@ -3,6 +3,7 @@ package telegram;
 import database.DatabaseHandler;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -75,25 +76,18 @@ public class TelegramBot extends TelegramLongPollingBot {
      * @param update - message object
      */
     public void onUpdateReceived(Update update) {
-        if(!subscribers.containsKey(update.getMessage().getFrom().getUserName())){
-            if(isOpenChannel) {
-                addSubscriber(update.getMessage().getFrom().getUserName(), update.getMessage().getChatId());
-                String welcomeMessage = "Hello, " + update.getMessage().getFrom().getUserName() + "!);";
-                welcomeMessage += "Welcome to " + customChannelName;
+        if (isOpenChannel) {
+            String welcomeMessage = "Hello, " + update.getMessage().getFrom().getUserName() + "! ";
+            welcomeMessage += "Welcome to " + customChannelName;
 
-                sendSingleMessage(welcomeMessage, update);
-            }
-            else{
-                String senderNotification = "It's private channel. Your ID will be send to channel's moderator";
-                sendSingleMessage(senderNotification, update);
+            sendSingleMessage(welcomeMessage, update);
+        } else {
+            String senderNotification = "It's private channel. Your ID will be send to channel's moderator";
+            sendSingleMessage(senderNotification, update);
+        }
 
-                //TODO create Admin settings
-                //TODO send admin notofications
-            }
-        }
-        else{
-            //TODO create commands receivers
-        }
+        //TODO create commands receivers
+        doMessageAction(update.getMessage());
     }
 
     /**
@@ -200,5 +194,22 @@ public class TelegramBot extends TelegramLongPollingBot {
      */
     public void setChannelAccessibility(boolean configChannelAccessibility){
         isOpenChannel = configChannelAccessibility;
+    }
+
+    /**
+     * action controller
+     * @param message - Telegram message object
+     */
+    private void doMessageAction(Message message){
+        if(message.getText().equals("subscribe")){
+            if(!subscribers.containsKey(message.getFrom().getUserName())){
+                addSubscriber(message.getFrom().getUserName(), message.getChatId());
+            }
+        }
+
+        // TODO subscribe
+        // TODO unsubscribe
+        // TODO allow access
+        // TODO deny access
     }
 }

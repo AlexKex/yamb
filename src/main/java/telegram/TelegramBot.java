@@ -3,7 +3,6 @@ package telegram;
 import database.DatabaseHandler;
 import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
@@ -76,18 +75,8 @@ public class TelegramBot extends TelegramLongPollingBot {
      * @param update - message object
      */
     public void onUpdateReceived(Update update) {
-        if (isOpenChannel) {
-            String welcomeMessage = "Hello, " + update.getMessage().getFrom().getUserName() + "! ";
-            welcomeMessage += "Welcome to " + customChannelName;
-
-            sendSingleMessage(welcomeMessage, update);
-        } else {
-            String senderNotification = "It's private channel. Your ID will be send to channel's moderator";
-            sendSingleMessage(senderNotification, update);
-        }
-
         //TODO create commands receivers
-        doMessageAction(update.getMessage());
+        doMessageAction(update);
     }
 
     /**
@@ -95,7 +84,9 @@ public class TelegramBot extends TelegramLongPollingBot {
      * @param user_name - Telegram subscriber user name
      * @param user_id - Telegram subscriber ID
      */
-    public void addSubscriber(String user_name, Long user_id){
+    public boolean addSubscriber(String user_name, Long user_id){
+        boolean result = false;
+
         if(!subscribers.containsKey(user_name)){
             subscribers.put(user_name, user_id);
         }
@@ -104,12 +95,41 @@ public class TelegramBot extends TelegramLongPollingBot {
             String query = "INSERT INTO subscribers VALUES (";
             query += user_id + ",";
             query += "'" + user_name + "')";
-            DatabaseHandler.executeQuery(query);
+            DatabaseHandler.executeUpdate(query);
+            result = true;
         }
         catch (SQLException e){
             System.err.println("Can's save subscriber to the DB");
             System.err.println(e.getMessage());
         }
+
+        return result;
+    }
+
+    /**
+     * Removes subscriber from subscribers collection and from DB
+     * @param user_name - Telegram user_name
+     * @return boolean flag of success
+     */
+    public boolean removeSubscriber(String user_name){
+        boolean result = false;
+
+        if(subscribers.containsKey(user_name)){
+            subscribers.remove(user_name);
+        }
+
+        try {
+            String query = "DELETE FROM subscribers WHERE user_name = ";
+            query += "'" + user_name + "'";
+            DatabaseHandler.executeUpdate(query);
+            result = true;
+        }
+        catch (SQLException e){
+            System.err.println("Can's remove subscriber from the DB");
+            System.err.println(e.getMessage());
+        }
+
+        return result;
     }
 
     /**
@@ -198,18 +218,47 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     /**
      * action controller
-     * @param message - Telegram message object
+     * @param update - Telegram update object
      */
-    private void doMessageAction(Message message){
-        if(message.getText().equals("subscribe")){
-            if(!subscribers.containsKey(message.getFrom().getUserName())){
-                addSubscriber(message.getFrom().getUserName(), message.getChatId());
+    private void doMessageAction(Update update){
+        String message_text = update.getMessage().getText();
+
+        /* simple commands */
+        if(message_text.equals("/start")){
+            if (isOpenChannel) {
+                String welcomeMessage = "Hello, " + update.getMessage().getFrom().getUserName() + "! ";
+                welcomeMessage += "Welcome to " + customChannelName;
+
+                sendSingleMessage(welcomeMessage, update);
+            } else {
+                 String senderNotification = "It's private channel. Your ID will be send to channel's moderator";
+                 sendSingleMessage(senderNotification, update);
+                }
+        }
+        else if(message_text.equals("/help")){
+            sendSingleMessage(TelegramBotMessageHandler.prepareHelp(), update);
+        }
+        else if(message_text.equals("/sub")){
+            if(isOpenChannel) {
+                if (addSubscriber(update.getMessage().getFrom().getUserName(), update.getMessage().getChatId()))
+                    sendSingleMessage(TelegramBotMessageHandler.prepareSubscriptionMessage(true), update);
+                else
+                    sendSingleMessage(TelegramBotMessageHandler.prepareSubscriptionMessage(false), update);
+            }
+            else{
+                // TODO send message to admin to commit subscription
+                sendSingleMessage(TelegramBotMessageHandler.prepareWaitingMessage(), update);
             }
         }
-
-        // TODO subscribe
-        // TODO unsubscribe
-        // TODO allow access
-        // TODO deny access
+        else if(message_text.equals("/unsub")){
+            if(removeSubscriber(update.getMessage().getFrom().getUserName()))
+                sendSingleMessage(TelegramBotMessageHandler.prepareUnsubscriptionMessage(true), update);
+            else
+                sendSingleMessage(TelegramBotMessageHandler.prepareUnsubscriptionMessage(false), update);
+        }
+        /* combined comands */
+        else{
+            String[] message_parts = message_text.split(" ");
+        }
     }
 }

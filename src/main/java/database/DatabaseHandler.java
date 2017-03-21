@@ -30,7 +30,7 @@ public class DatabaseHandler {
         }
 
         System.out.println("Connection created");
-    }
+    }                       
 
     /**
      * Returns query result as ResultSet object
@@ -54,6 +54,32 @@ public class DatabaseHandler {
     public static void executeQuery(String query) throws SQLException {
         statement = connection.createStatement();
         statement.executeQuery(query);
+        statement.close();
+    }
+
+    /**
+     * Executes the given SQL statement, which may be an <code>INSERT</code>,
+     * <code>UPDATE</code>, or <code>DELETE</code> statement or an
+     * SQL statement that returns nothing, such as an SQL DDL statement.
+     *<p>
+     * <strong>Note:</strong>This method cannot be called on a
+     * <code>PreparedStatement</code> or <code>CallableStatement</code>.
+     * @param query an SQL Data Manipulation Language (DML) statement, such as <code>INSERT</code>, <code>UPDATE</code> or
+     * <code>DELETE</code>; or an SQL statement that returns nothing,
+     * such as a DDL statement.
+     *
+     * @exception SQLException if a database access error occurs,
+     * this method is called on a closed <code>Statement</code>, the given
+     * SQL statement produces a <code>ResultSet</code> object, the method is called on a
+     * <code>PreparedStatement</code> or <code>CallableStatement</code>
+     * @throws SQLTimeoutException when the driver has determined that the
+     * timeout value that was specified by the {@code setQueryTimeout}
+     * method has been exceeded and has at least attempted to cancel
+     * the currently running {@code Statement}
+     */
+    public static void executeUpdate(String query) throws SQLException, SQLTimeoutException{
+        statement = connection.createStatement();
+        statement.executeUpdate(query);
         statement.close();
     }
 }

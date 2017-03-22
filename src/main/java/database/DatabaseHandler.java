@@ -1,5 +1,6 @@
 package database;
 
+import telegram.TelegramSubscriber;
 import yamb.YambApp;
 
 import java.sql.*;
@@ -12,13 +13,11 @@ public class DatabaseHandler {
     private static Statement statement;
     private static ResultSet resultSet;
 
-    static{
+    public static void initDatabase(){
         try {
             Class.forName("org.sqlite.JDBC");
             String db_location = YambApp.getConfig().getStringParameter("sqlite", "db_location");
             String db_name = YambApp.getConfig().getStringParameter("sqlite", "db_name");
-
-            System.out.println(db_location + db_name);
 
             connection = DriverManager.getConnection("jdbc:sqlite:" + db_location + db_name);
         }
@@ -28,8 +27,6 @@ public class DatabaseHandler {
         catch (SQLException e){
             System.err.println("SQLException : " + e.getMessage());
         }
-
-        System.out.println("Connection created");
     }                       
 
     /**
@@ -41,7 +38,6 @@ public class DatabaseHandler {
     public static ResultSet getQueryResult(String query) throws SQLException {
         statement = connection.createStatement();
         resultSet = statement.executeQuery(query);
-        statement.close();
 
         return resultSet;
     }
@@ -54,7 +50,6 @@ public class DatabaseHandler {
     public static void executeQuery(String query) throws SQLException {
         statement = connection.createStatement();
         statement.executeQuery(query);
-        statement.close();
     }
 
     /**

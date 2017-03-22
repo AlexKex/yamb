@@ -3,6 +3,9 @@ package yamb;
 import database.DatabaseHandler;
 import org.telegram.telegrambots.ApiContextInitializer;
 import telegram.TelegramBot;
+import telegram.TelegramBotMessageHandler;
+import telegram.TelegramSubscriber;
+import telegram.TelegramUser;
 
 /**
  * Created by Alex Pryakhin on 21.03.2017.
@@ -17,6 +20,9 @@ public class YambApp {
     public YambApp(String configurationDirectory){
         // read main configuration file
         config = new YambConfig(configurationDirectory);
+
+        DatabaseHandler.initDatabase();
+        TelegramUser.initAdmins();
 
         // read the list of monitors
         this.createMonitors();
@@ -40,6 +46,11 @@ public class YambApp {
 
     public void startApp(){
         this.isRunning = true;
+
+        String message = TelegramBotMessageHandler.restartBotMessage() + "\n";
+        message += "Admins registered:      " + TelegramUser.getAdminsList().size() + "\n";
+        message += "Subscribers registered: " + TelegramBot.getSubscribersListSize();
+        bot.sendAdminNotifier(message);
     }
 
     public void stopApp(){

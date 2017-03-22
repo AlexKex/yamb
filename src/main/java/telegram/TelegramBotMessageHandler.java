@@ -1,5 +1,7 @@
 package telegram;
 
+import org.telegram.telegrambots.api.objects.Update;
+
 /**
  * Created by Alex Pryakhin on 21.03.2017.
  */
@@ -29,6 +31,10 @@ public class TelegramBotMessageHandler
         return success ? "You've been successfully subscribed to the channel" : "Something goes wrong, but probably you will receive messages. Probably...";
     }
 
+    static String prepareSubscriptionMessage(){
+        return "You're already subscribed";
+    }
+
     /**
      * Warning for private monitors
      * @return message
@@ -44,5 +50,17 @@ public class TelegramBotMessageHandler
      */
     static String prepareUnsubscriptionMessage(boolean success){
         return success ? "You've been successfully unsubscribed" : "Something goes wrong";
+    }
+
+    static String prepareAdminSubstriptionMessage(Update update){
+        return "User " + update.getMessage().getFrom().getUserName() + " asked for channel access";
+    }
+
+    static String prepareAdminGreetings(){
+        return "Hail to the king!";
+    }
+
+    public static String restartBotMessage(){
+        return "Bot has been restarted";
     }
 }

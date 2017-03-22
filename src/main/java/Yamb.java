@@ -38,9 +38,7 @@ public class Yamb {
         YambApp app = new YambApp(configurationDirectory);
         app.startApp();
         while(app.isAppRunning()){
-            if(app.getBot().hasSubscribers()){
-                app.getBot().sendBrodcastMessage("Hello");
-            }
+
         }
     }
 }

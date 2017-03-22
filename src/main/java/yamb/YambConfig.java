@@ -1,5 +1,6 @@
 package yamb;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -7,6 +8,7 @@ import org.json.JSONTokener;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -56,8 +58,6 @@ public class YambConfig {
         catch(Exception e){
             System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
             System.err.println(e.getMessage());
-
-            return null;
         }
 
         return parameterValue;
@@ -66,10 +66,10 @@ public class YambConfig {
     /**
      * Integer getter for config parameters
      * @param parameterName- get parameter by name and block
-     * @return Integer
+     * @return Integer, 0 by default
      */
     public Integer getIntegerParameter(String parameterBlock, String parameterName){
-        Integer parameterValue = null;
+        Integer parameterValue = 0;
 
         try{
             JSONObject parameters = configuration.get(parameterBlock);
@@ -79,15 +79,13 @@ public class YambConfig {
         catch(JSONException e){
             System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
             System.err.println(e.getMessage());
-
-            return 0;
         }
 
         return parameterValue;
     }
 
     /**
-     *
+     * Try to find boolean parameter in config
      * @param parameterBlock - name of parameters block in configuration file
      * @param parameterName - name of the parameter
      * @return boolean, false by default
@@ -103,11 +101,34 @@ public class YambConfig {
         catch(JSONException e){
             System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
             System.err.println(e.getMessage());
-
-            return false;
         }
 
         return parameterValue;
+    }
+
+    /**
+     * Try to find array list of parameters in config
+     * @param parameterBlock - name of parameters block in configuration file
+     * @param parameterName - name of the parameter
+     * @return ArrayList of String, empty by default
+     */
+    public ArrayList<String> getStringArrayListParameter(String parameterBlock, String parameterName){
+        ArrayList<String> parameters = new ArrayList<String>();
+
+        try{
+            JSONObject parametersObject = configuration.get(parameterBlock);
+            JSONArray paramsArray = parametersObject.getJSONArray(parameterName);
+
+            for(int i = 0; i < paramsArray.length(); i++){
+                parameters.add(paramsArray.getString(i));
+            }
+        }
+        catch (JSONException e){
+            System.err.println("Error while reading main configuration on block " + parameterBlock + " with parameter " + parameterName);
+            System.err.println(e.getMessage());
+        }
+
+        return parameters;
     }
 
     private void readCofig(File configurationFile) throws IOException{

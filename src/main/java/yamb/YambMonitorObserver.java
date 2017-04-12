@@ -1,6 +1,6 @@
 package yamb;
 
-import monitor.Monitor;
+import monitor.Monitorable;
 import monitor.MonitorObserver;
 import telegram.TelegramBot;
 
@@ -14,7 +14,7 @@ public class YambMonitorObserver implements MonitorObserver {
         informerBot = bot;
     }
 
-    public void update(Monitor observableMonitor, Object arguments) {
+    public void update(Monitorable observableMonitor, Object arguments) {
 
     }
 }

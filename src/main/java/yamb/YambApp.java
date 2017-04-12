@@ -74,6 +74,11 @@ public class YambApp {
     }
 
     private void createMonitors() {
+        // TODO !!!
+        // read monitors configuration
+
+        // add monitor for each config
+
     }
 
     public static YambConfig getConfig(){

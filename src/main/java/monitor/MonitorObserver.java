@@ -14,5 +14,5 @@ public interface MonitorObserver {
      * @param   arguments             an argument passed to the <code>notifyObservers</code>
      *                                method.
      */
-    void update(Monitor observableMonitor, Object arguments);
+    void update(Monitorable observableMonitor, Object arguments);
 }
